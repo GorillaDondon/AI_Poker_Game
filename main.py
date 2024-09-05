@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 # Class for creating each card
 class Card:
@@ -162,6 +163,53 @@ def ai_move(user_hand, computer_hand):
                 # Random choice from [call, fold]
         
         return 0
+
+
+def calc_probability(user_hands, computer_hands, deck):
+    temp = deepcopy(deck)
+
+    win = 0
+    lose = 0
+    draw = 0
+
+    counter = 0
+
+    # compare 48*47 = 2256
+    for i in range(48): #TODO change the condition
+        counter += 1
+        print(counter)
+        current = deck.deal_card()
+        print("current deck",current.suite, current.level)
+
+        possible_combinations = deepcopy(temp)
+        counter_ = 0
+
+        for i in range(47):
+            counter_ += 1
+            current_ = possible_combinations.deal_card()
+            print("temp",counter_,current_.suite, current_.level)
+            if current_ != current: # 47 combination
+                # determine the winner
+                # win, draw, lose
+                # call function #2
+                result = determine_winner()
+
+                if result == "win":
+                    win += 1
+                elif result == "lose":
+                    lose += 1
+                else:
+                    draw += 1
+            
+
+        
+    total_game = 48 * 47
+    prob_win = win / total_game
+    prob_lose = lose / total_game
+    prob_draw = draw / total_game
+
+    return prob_win, prob_lose, prob_draw
+
 
 def main():
 

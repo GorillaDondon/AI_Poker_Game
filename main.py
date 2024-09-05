@@ -6,6 +6,9 @@ class Card:
         self.suit = suit
         self.level = level
 
+    def __str__(self):
+        return f"{self.level} of {self.suit}"
+
 # Class for organizing the deck and shuffle it
 class Deck:
     suites = ["hearts", "diamons", "clubs", "spades"]
@@ -74,20 +77,140 @@ class Hand:
     def is_triple(self, levels):
         return levels[0] == levels[1] == levels[2]
     
-
+# Function that lets user place bet
 def place_bet():
     bet = int(input("Enter your bet: "))
+    return bet
 
+# Function that deals the cards at the beginning of each game
 def deal_cards(deck):
     return [deck.deal_card() for _ in range(3)]
 
-def show_face_cards(hand):
-    return [hand.cards[:2]]
+# Function tha shows the firs 2 cards
+def show_face_cards(player, hand):
+    face_up_cards = hand.cards[:2]  # First two cards are face-up
+    face_up_str = ', '.join([f"{card.level} of {card.suit}" for card in face_up_cards])
+    print(f"{player} hand: {face_up_str}")
 
+# Helper function to determine the best hand 
+def hand_rank(hand_type):
+    ranks = {
+        "high-card": 1,
+        "pair": 2,
+        "flush": 3,
+        "straight": 4,
+        "triple": 5,
+        "straight-flush": 6
+    }
+    return ranks[hand_type]
+
+# Function to determine the winner
 def determine_winner(user_hand, computer_hand):
 
-    user_rank = user_hand.evaluate_hand()
-    computer_rank = computer_hand.evaluate_hand()
+    user_score, user_value = user_hand.evaluate_hand()
+    computer_score, computer_value = computer_hand.evaluate_hand()
+
+    if hand_rank(user_score) > hand_rank(computer_score):
+        print(f"User wins with a {user_score}!")
+        return "user"
+    elif hand_rank(user_score) < hand_rank(computer_score):
+        print(f"Computer wins with a {computer_score}!")
+        return "computer"
+    else:
+        # If hand ranks are the same, compare the highest card values
+        if user_value > computer_value:
+            print(f"User wins with a higher card in {user_score}!")
+            return "user"
+        elif user_value < computer_value:
+            print(f"Computer wins with a higher card in {computer_score}!")
+            return "computer"
+        else:
+            print("It's a tie!")
+
+
+def ai_move(user_hand, computer_hand):
+
+    winner = determine_winner(user_hand, computer_hand)
+
+    # If we know computer is going to win
+    if winner == "computer":
+        # If win probability high
+            # Random choice from [call, raise]
+                # If raise:
+                    # Raise == 2x current pot
+        
+        # If win probability low
+            # If current profit is negative:
+                # Random choice from [call, raise]
+            # Else:
+                # Random choice from [call, raise, fold]
+        
+        return 0
+    
+    # If we know computer is going to loose
+    else:
+        # If win probability high
+            # If current profit is negative:
+                # Random choice from [call, fold]
+            # Else:
+                # Random choice from [call, raise, fold]
+        
+        # If win probability low
+            # If current profit is negative:
+                # Random choice from [call, fold]
+            # Else:
+                # Random choice from [call, fold]
+        
+        return 0
+
+def main():
+
+
+    # Initialize profit for company to 0
+    computer_profit = 0
+
+    while True:
+
+        # Initialize a deck
+        deck = Deck()
+
+        # User places a bet
+        total_pot = place_bet()
+
+        # Deal three cards to both user and computer
+        user_cards = deal_cards(deck)
+        computer_cards = deal_cards(deck)
+
+        # Evaluate the hand to determine winner
+        user_hand = Hand(user_cards)
+        computer_hand = Hand(computer_cards)
+
+        show_face_cards("User", user_hand)
+        show_face_cards("Computer", computer_hand)
+
+        # User place a second bet
+        user_decision = input("\nDo you want to raise? (yes/no): ").lower()
+
+        if user_decision == 'yes':
+            additional_bet = place_bet()
+            total_pot += additional_bet
+
+        ai_move(user_hand, computer_hand, computer_profit)
+
+        winner = determine_winner(user_hand, computer_hand)
+        
+        if winner == "user":
+            computer_profit -= total_pot
+        else:
+            computer_profit += total_pot
+
+        print("Current computer profit: ", computer_profit)
+        play_more = input("Do you want to play another game? (yes/no): ").lower()
+
+        if play_more == "no":
+            return False
+
+main()
 
 
 

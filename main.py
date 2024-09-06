@@ -116,22 +116,17 @@ def determine_winner(user_hand, computer_hand):
     computer_score, computer_value = computer_hand.evaluate_hand()
 
     if hand_rank(user_score) > hand_rank(computer_score):
-        print(f"User wins with a {user_score}!")
         return "user"
     elif hand_rank(user_score) < hand_rank(computer_score):
-        print(f"Computer wins with a {computer_score}!")
         return "computer"
     else:
         # If hand ranks are the same, compare the highest card values
         if user_value > computer_value:
-            print(f"User wins with a higher card in {user_score}!")
             return "user"
         elif user_value < computer_value:
-            print(f"Computer wins with a higher card in {computer_score}!")
             return "computer"
         else:
-            print("It's a tie!")
-
+            return "tie"
 
 def ai_move(user_hand, computer_hand):
 
@@ -177,8 +172,11 @@ def calc_probability(user_hands, computer_hands, deck, simulations=10000):
     draw = 0
 
     # extract visible two cards
-    computer_visible = computer_hands[:2]
-    user_visible = user_hands[:2]
+    computer_visible = computer_hands.cards[:2]
+    user_visible = user_hands.cards[:2]
+
+    print(computer_visible)
+    print(user_visible)
 
     # simulate calculating the win, lose, draw probabilities with 10000 random simulations
     for _ in range(simulations):
@@ -231,6 +229,7 @@ def main():
         user_hand = Hand(user_cards)
         computer_hand = Hand(computer_cards)
 
+
         show_face_cards("User", user_hand)
         show_face_cards("Computer", computer_hand)
 
@@ -241,7 +240,10 @@ def main():
             additional_bet = place_bet()
             total_pot += additional_bet
 
-        ai_move(user_hand, computer_hand, computer_profit)
+        prob_win, prob_draw, prob_lose = calc_probability(user_hand, computer_hand, deck)
+        print(prob_win, prob_draw, prob_lose)
+
+        ai_move(user_hand, computer_hand)
 
         winner = determine_winner(user_hand, computer_hand)
         

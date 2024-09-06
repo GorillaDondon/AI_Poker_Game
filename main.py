@@ -21,6 +21,10 @@ class Deck:
 
     def deal_card(self):
         return self.cards.pop()
+
+    def shuffle(self):
+        # Shuffle the deck
+        random.shuffle(self.cards)
     
 
 # Class for initializing the players hand and evaluating it
@@ -165,50 +169,44 @@ def ai_move(user_hand, computer_hand):
         return 0
 
 
-def calc_probability(user_hands, computer_hands, deck):
-    temp = deepcopy(deck)
+def calc_probability(user_hands, computer_hands, deck, simulations=10000):
+    #t = deepcopy(deck)
 
     win = 0
     lose = 0
     draw = 0
 
-    counter = 0
+    # extract visible two cards
+    computer_visible = computer_hands[:2]
+    user_visible = user_hands[:2]
 
-    # compare 48*47 = 2256
-    for i in range(48): #TODO change the condition
-        counter += 1
-        print(counter)
-        current = deck.deal_card()
-        print("current deck",current.suite, current.level)
+    # simulate calculating the win, lose, draw probabilities with 10000 random simulations
+    for _ in range(simulations):
+        # reset the deck (without visible 4 cards) in every simulation
+        temp = deepcopy(deck)
+        temp.shuffle()
 
-        possible_combinations = deepcopy(temp)
-        counter_ = 0
-
-        for i in range(47):
-            counter_ += 1
-            current_ = possible_combinations.deal_card()
-            print("temp",counter_,current_.suite, current_.level)
-            if current_ != current: # 47 combination
-                # determine the winner
-                # win, draw, lose
-                # call function #2
-                result = determine_winner()
-
-                if result == "win":
-                    win += 1
-                elif result == "lose":
-                    lose += 1
-                else:
-                    draw += 1
-            
-
+        # Randomly draw face-down cards from the deck
+        computer_hands = computer_visible + [temp.deal_card()]
+        computer_hands = Hand(computer_hands)
+        user_hands = user_visible + [temp.deal_card()]
+        user_hands = Hand(user_hands)
         
-    total_game = 48 * 47
-    prob_win = win / total_game
-    prob_lose = lose / total_game
-    prob_draw = draw / total_game
+        # Compare hand strengths
+        result = determine_winner(user_hands, computer_hands)
+        if result == "win":
+            win += 1
+        elif result == "lose":
+            lose += 1
+        else:
+            draw += 1
+
+    prob_win = win / simulations
+    prob_lose = lose / simulations
+    prob_draw = draw / simulations
 
     return prob_win, prob_lose, prob_draw
+
 
 
 def main():

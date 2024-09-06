@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 # Class for creating each card
 class Card:
@@ -20,6 +21,10 @@ class Deck:
 
     def deal_card(self):
         return self.cards.pop()
+
+    def shuffle(self):
+        # Shuffle the deck
+        random.shuffle(self.cards)
     
 
 # Class for initializing the players hand and evaluating it
@@ -162,6 +167,47 @@ def ai_move(user_hand, computer_hand):
                 # Random choice from [call, fold]
         
         return 0
+
+
+def calc_probability(user_hands, computer_hands, deck, simulations=10000):
+    #t = deepcopy(deck)
+
+    win = 0
+    lose = 0
+    draw = 0
+
+    # extract visible two cards
+    computer_visible = computer_hands[:2]
+    user_visible = user_hands[:2]
+
+    # simulate calculating the win, lose, draw probabilities with 10000 random simulations
+    for _ in range(simulations):
+        # reset the deck (without visible 4 cards) in every simulation
+        temp = deepcopy(deck)
+        temp.shuffle()
+
+        # Randomly draw face-down cards from the deck
+        computer_hands = computer_visible + [temp.deal_card()]
+        computer_hands = Hand(computer_hands)
+        user_hands = user_visible + [temp.deal_card()]
+        user_hands = Hand(user_hands)
+        
+        # Compare hand strengths
+        result = determine_winner(user_hands, computer_hands)
+        if result == "win":
+            win += 1
+        elif result == "lose":
+            lose += 1
+        else:
+            draw += 1
+
+    prob_win = win / simulations
+    prob_lose = lose / simulations
+    prob_draw = draw / simulations
+
+    return prob_win, prob_lose, prob_draw
+
+
 
 def main():
 

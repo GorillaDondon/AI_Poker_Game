@@ -12,7 +12,7 @@ class Card:
 
 # Class for organizing the deck and shuffle it
 class Deck:
-    suites = ["hearts", "diamons", "clubs", "spades"]
+    suites = ["hearts", "diamonds", "clubs", "spades"]
     levels = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
     
     def __init__(self):
@@ -91,9 +91,9 @@ def place_bet():
 def deal_cards(deck):
     return [deck.deal_card() for _ in range(3)]
 
-# Function tha shows the firs 2 cards
-def show_face_cards(player, hand):
-    face_up_cards = hand.cards[:2]  # First two cards are face-up
+# Function tha shows  cards
+def show_cards(player, hand, cards):
+    face_up_cards = hand.cards[:cards]  # Number of cards are face-up
     face_up_str = ', '.join([f"{card.level} of {card.suit}" for card in face_up_cards])
     print(f"{player} hand: {face_up_str}")
 
@@ -116,55 +116,67 @@ def determine_winner(user_hand, computer_hand):
     computer_score, computer_value = computer_hand.evaluate_hand()
 
     if hand_rank(user_score) > hand_rank(computer_score):
-        return "user"
+        return "lose"
     elif hand_rank(user_score) < hand_rank(computer_score):
-        return "computer"
+        return "win"
     else:
         # If hand ranks are the same, compare the highest card values
         if user_value > computer_value:
-            return "user"
+            return "lose"
         elif user_value < computer_value:
-            return "computer"
+            return "win"
         else:
-            return "tie"
+            return "draw"
 
-def ai_move(user_hand, computer_hand):
+def ai_move(user_hand, computer_hand, prob_win, profit, pot):
 
-    winner = determine_winner(user_hand, computer_hand)
+    result = determine_winner(user_hand, computer_hand)
 
+    print(result)
     # If we know computer is going to win
-    if winner == "computer":
-        # If win probability high
-            # Random choice from [call, raise]
-                # If raise:
-                    # Raise == 2x current pot
+    if result == "win":
+        if prob_win > 0.7:
+            move = random.choice(["call", "raise"])
+            if move == "raise":
+                return pot*1.5 # Computer makes a raise that is two times the pot
+            else:
+                return pot
         
-        # If win probability low
-            # If current profit is negative:
-                # Random choice from [call, raise]
-            # Else:
-                # Random choice from [call, raise, fold]
-        
-        return 0
-    
+        else:
+            if profit < 0 and pot < 1000:
+                move = random.choice(["call", "raise"])
+                if move == "raise":
+                    return pot*1.2
+                else:
+                    return pot
+            else:
+                move = random.choice(["call", "raise", "fold"])
+                if move == "raise":
+                    return pot*1.2
+                elif move == "call":
+                    return pot
+                else:
+                    return 0
+            
     # If we know computer is going to loose
     else:
-        # If win probability high
-            # If current profit is negative:
-                # Random choice from [call, fold]
-            # Else:
-                # Random choice from [call, raise, fold]
+        if profit - pot < 0:
+            # Play very conservatively when losing money and have low win probability
+            move = random.choices(["fold", "call"], weights=[0.9, 0.1])[0]
+            if move == "call":
+                return pot  # Call
+            else:
+                return 0  # Fold
+        else:
+            # If profit is positive, AI might take a risk and call occasionally
+            move = random.choices(["fold", "call"], weights=[0.6, 0.4])[0]
+            if move == "call":
+                return pot  # Call
+            else:
+                return 0  # Fold
         
-        # If win probability low
-            # If current profit is negative:
-                # Random choice from [call, fold]
-            # Else:
-                # Random choice from [call, fold]
-        
-        return 0
-
-
-def calc_probability(user_hands, computer_hands, deck, simulations=10000):
+    
+def calc_probability(user_hands, computer_hands, deck, simulations=5000):
     #t = deepcopy(deck)
 
     win = 0
@@ -174,9 +186,6 @@ def calc_probability(user_hands, computer_hands, deck, simulations=10000):
     # extract visible two cards
     computer_visible = computer_hands.cards[:2]
     user_visible = user_hands.cards[:2]
-
-    print(computer_visible)
-    print(user_visible)
 
     # simulate calculating the win, lose, draw probabilities with 10000 random simulations
     for _ in range(simulations):
@@ -208,8 +217,6 @@ def calc_probability(user_hands, computer_hands, deck, simulations=10000):
 
 
 def main():
-
-
     # Initialize profit for company to 0
     computer_profit = 0
 
@@ -219,7 +226,7 @@ def main():
         deck = Deck()
 
         # User places a bet
-        total_pot = place_bet()
+        user_bet = place_bet()
 
         # Deal three cards to both user and computer
         user_cards = deal_cards(deck)
@@ -229,34 +236,61 @@ def main():
         user_hand = Hand(user_cards)
         computer_hand = Hand(computer_cards)
 
-
-        show_face_cards("User", user_hand)
-        show_face_cards("Computer", computer_hand)
+        show_cards("User", user_hand, 2)
+        show_cards("Computer", computer_hand, 2)
 
         # User place a second bet
         user_decision = input("\nDo you want to raise? (yes/no): ").lower()
 
         if user_decision == 'yes':
             additional_bet = place_bet()
-            total_pot += additional_bet
+            user_bet += additional_bet
 
-        prob_win, prob_draw, prob_lose = calc_probability(user_hand, computer_hand, deck)
-        print(prob_win, prob_draw, prob_lose)
+        # Calcualte the probaility based on the first two cards
+        prob_win, prob_lose, prob_draw = calc_probability(user_hand, computer_hand, deck)
 
-        ai_move(user_hand, computer_hand)
+        print(prob_win)
 
-        winner = determine_winner(user_hand, computer_hand)
-        
-        if winner == "user":
-            computer_profit -= total_pot
+        ai_bet = ai_move(user_hand, computer_hand, prob_win, computer_profit, user_bet)
+
+        if ai_bet == user_bet:
+            print("\nComputer called.\n")
+        elif ai_bet > user_bet:
+            print(f"\nComputer raised to {ai_bet}.\n")
         else:
-            computer_profit += total_pot
+            print("\nComputer folded.\n")
+            continue
 
-        print("Current computer profit: ", computer_profit)
-        play_more = input("Do you want to play another game? (yes/no): ").lower()
+        # If computer raised, user gets a choice to call or fold
+        if ai_bet > user_bet:
+            user_move = input("\nDo you want to call the raise? (yes/no): ").lower()
+            if user_move == "yes":
+                user_bet = ai_bet
+            else:
+                print("\nUser folded. Computer wins this round.\n")
+                computer_profit += user_bet
+                continue
+
+        show_cards("User", user_hand, 3)
+        show_cards("Computer", computer_hand, 3)
+
+        result = determine_winner(user_hand, computer_hand)
+        
+        if result == "win":
+            computer_profit += user_bet
+            print("\nComputer wins the round!\n")
+        elif result == "lose":
+            computer_profit -= ai_bet
+            print("\nUser wins the round!\n")
+        else:
+            print("\nIt's a draw!\n")
+
+        print(f"\nCurrent computer profit: {computer_profit}\n")
+
+        play_more = input("\nDo you want to play another game? (yes/no): \n").lower()
 
         if play_more == "no":
-            return False
+            break
 
 main()
 

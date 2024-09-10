@@ -88,13 +88,10 @@ class Hand:
         levels = sorted([self.level_values(card.level) for card in self.cards])
         suits = [card.suit for card in self.cards]
 
-        print(f"Levels: {levels}, Suits: {suits}")  # Debug print
-
         # Cheat for flush
         if suits[0] == suits[1]:
             for card in deck.cards:
                 if card.suit == suits[0]:
-                    print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
                     return True
@@ -102,11 +99,9 @@ class Hand:
 
         # Cheat for triple    
         if levels[0] == levels[1]:
-            print("Cheating for triple")
             for card in deck.cards:
                 card_value = self.level_values(card.level)  # Convert card level to integer for comparison
                 if card_value == levels[0]:
-                    print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
                     return True
@@ -116,14 +111,12 @@ class Hand:
         # Cheat for straight
         if (self.level_values(self.cards[0].level) + 1) == self.level_values(self.cards[1].level):
             # Check for a card that would complete a straight
-            print("Cheating for straight")
             for card in deck.cards:
                 card_level_value = self.level_values(card.level)
                 
                 # Check if the card can complete a straight, considering Ace as both low and high
                 if (card_level_value == levels[1] + 1 or card_level_value == levels[0] - 1 or
                     (levels == [2, 3] and card.level == 'A')):
-                    print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
                     return True
@@ -132,12 +125,10 @@ class Hand:
 
         # Cheat for pair
         if levels[0] != levels[1] and suits[0] != suits[1]:
-            print("Cheating for pair")
             high_card = max(levels[0], levels[1]) # Get highest card
             for card in deck.cards:
                 card_value = self.level_values(card.level)  # Convert card level to integer for comparison
                 if card_value == high_card:
-                    print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
                     return True
@@ -154,8 +145,7 @@ def deal_cards(deck, hand, cards):
 
 # Function that shows the cards
 def show_cards(player, hand):
-    face_up_cards = hand.cards  # Number of cards that are face-up
-    face_up_str = ', '.join([f"{card.level} of {card.suit}" for card in face_up_cards])
+    face_up_str = ', '.join([f"{card.level} of {card.suit}" for card in hand.cards])
     print(f"{player} hand: {face_up_str}")
 
 # Helper function to determine the best hand 
@@ -170,10 +160,10 @@ def hand_rank(hand_type):
     }
     return ranks[hand_type]
 
-# Function to determine if the AI will win, lose or draw
+# Function to determine if the AI will win, lose or draw and return how they won
 def determine_winner(user_hand, computer_hand):
 
-    # Evaluete both hands, it returns what the player has and its highest card
+    # Evaluete both hands, it returns what the player has and its highest card e.g (straight, 7)
     user_score, user_value = user_hand.evaluate_hand()
     computer_score, computer_value = computer_hand.evaluate_hand()
 
@@ -219,8 +209,8 @@ def ai_move(profit, pot, should_cheat, prob_win):
             else:
                 return 0
 
+# Function that checks the strength of the first state with only 2 cards showing
 def calc_probability(user_hands, computer_hands, deck, simulations=5000):
-    #t = deepcopy(deck)
 
     win = 0
     lose = 0
@@ -259,6 +249,7 @@ def main():
     # Initialize profit for company to 0
     computer_profit = 0
 
+    # Keep track of wins and losses
     win = 0
     loss = 0
 
@@ -269,8 +260,6 @@ def main():
             win_rate = win/(win+loss)
         else:
             win_rate = 0.5
-
-        print("win_rate", win_rate)
 
         # Initialize a deck
         print("New Game!\n")
@@ -291,22 +280,22 @@ def main():
         show_cards("User", user_hand)
         show_cards("Computer", computer_hand)
 
-        # User place a second bet
+        # User place a second bet or not
         user_decision = input("\nDo you want to raise? (yes/no): ").lower()
 
         if user_decision == 'yes':
             additional_bet = place_bet()
             user_bet += additional_bet
 
-        # Calcualtes the strenght of hands with first two cards for AI to make a reasonable desicion
+        # Calculates the strength of hands with first two cards for AI to make a reasonable desicion
         prob_win = calc_probability(user_hand, computer_hand, deck)
 
         # Check for cheating condition based on win rate or negative profit
         should_cheat = (win_rate < 0.5 or computer_profit < -250)
-        if should_cheat and random.random() < 0.66:  # 50% chance to cheat when conditions are met
-            print("Computer might be thinking of cheating...\n")
+        if should_cheat and random.random() < 0.66:  # 66% chance to cheat when conditions are met
             should_cheat = computer_hand.cheat(deck)  # AI cheats by modifying its hand
 
+        # AI makes a move depending on profit, should_cheat and strenght of first 2 cards
         ai_bet = ai_move(computer_profit, user_bet, should_cheat, prob_win)
 
         if ai_bet == user_bet:
@@ -330,12 +319,10 @@ def main():
                     continue
         else:
             print("Computer folded.\n")
-            # If user raised and computer folded. Just subtract original bet
-            if user_decision == "yes":
-                computer_profit -= (user_bet - additional_bet)
-            else:
-                computer_profit -= user_bet
-                loss +=1
+            # If user raised and computer folded. Just subtract stating bet
+            computer_profit -= (user_bet - additional_bet)
+            loss +=1
+            
             print(f"Current computer profit: {computer_profit}\n")
 
             play_more = input("Do you want to play another game? (yes/no): \n").lower()

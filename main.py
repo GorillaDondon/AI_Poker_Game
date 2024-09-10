@@ -82,7 +82,7 @@ class Hand:
         # If none of the above, return high card
         return ("high-card", self.level_values(levels[-1]))
     
-    def 
+    def trickUsers(self, )
 
     
 # Function that lets user place bet
@@ -133,13 +133,21 @@ def determine_winner(user_hand, computer_hand):
             return "draw" ,user_score
 
 # Function that determines the AI move
-def ai_move(user_hand, computer_hand, prob_win, ai_wins, ai_losses, profit, pot):
+def ai_move(user_hand, computer_hand, prob_win, ai_wins, ai_losses, num_of_games, profit, pot):
 
     # If AI has way worse cards than user it does not make sense to call or raise if they user bet high.
     if prob_win < 0.2 and pot > 100:
         return 0
 
     result, winnig_hand = determine_winner(user_hand, computer_hand)
+
+    winning_rate = 0
+
+    if num_of_games == 0:
+        winning_rate = 0
+    else:
+        winning_rate
+
 
     print(result)
     # If we know computer is going to win or draw
@@ -233,9 +241,14 @@ def main():
     ai_wins = 0
     ai_losses = 0
 
+    # keep track of the total number of played games
+    num_of_games = 0
+
     while True:
 
         print("New Game!\n")
+        num_of_games += 1
+
         # Initialize a deck
         deck = Deck()
 

@@ -131,7 +131,7 @@ def determine_winner(user_hand, computer_hand):
             return "draw" ,user_score
 
 # Function that determines the AI move
-def ai_move(user_hand, computer_hand, prob_win, profit, pot):
+def ai_move(user_hand, computer_hand, prob_win, ai_wins, ai_losses, profit, pot):
 
     # If AI has way worse cards than user it does not make sense to call or raise if they user bet high.
     if prob_win < 0.2 and pot > 100:
@@ -226,6 +226,10 @@ def calc_probability(user_hands, computer_hands, deck, simulations=5000):
 def main():
     # Initialize profit for company to 0
     computer_profit = 0
+    
+    # keep track of computer's winning/losing history
+    ai_wins = 0
+    ai_losses = 0
 
     while True:
 
@@ -259,7 +263,7 @@ def main():
 
         print(prob_win)
 
-        ai_bet = ai_move(user_hand, computer_hand, prob_win, computer_profit, user_bet)
+        ai_bet = ai_move(user_hand, computer_hand, prob_win, ai_wins, ai_losses, computer_profit, user_bet)
 
         if ai_bet == user_bet:
             print("Computer called.\n")
@@ -299,9 +303,11 @@ def main():
         if result == "win":
             computer_profit += user_bet
             print(f"Computer wins the round! {winning_type}\n")
+            ai_wins += 1
         elif result == "lose":
             computer_profit -= ai_bet
             print(f"User wins the round! {winning_type}\n")
+            ai_losses += 1
         else:
             print("It's a draw!\n")
 

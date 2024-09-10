@@ -88,6 +88,8 @@ class Hand:
         levels = sorted([self.level_values(card.level) for card in self.cards])
         suits = [card.suit for card in self.cards]
 
+        print(f"Levels: {levels}, Suits: {suits}")  # Debug print
+
         # Cheat for flush
         if suits[0] == suits[1]:
             for card in deck.cards:
@@ -95,16 +97,21 @@ class Hand:
                     print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
-                    return
+                    return True
+            return False
 
         # Cheat for triple    
         if levels[0] == levels[1]:
+            print("Cheating for triple")
             for card in deck.cards:
-                if card.level == levels[0]:
+                card_value = self.level_values(card.level)  # Convert card level to integer for comparison
+                if card_value == levels[0]:
                     print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
-                    return 
+                    return True
+            return False
+
                     
         # Cheat for straight
         if (self.level_values(self.cards[0].level) + 1) == self.level_values(self.cards[1].level):
@@ -119,18 +126,22 @@ class Hand:
                     print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
-                    return 
+                    return True
+                
+            return False
 
         # Cheat for pair
         if levels[0] != levels[1] and suits[0] != suits[1]:
             print("Cheating for pair")
             high_card = max(levels[0], levels[1]) # Get highest card
             for card in deck.cards:
-                if card.level == high_card:
+                card_value = self.level_values(card.level)  # Convert card level to integer for comparison
+                if card_value == high_card:
                     print("AI cheated with this card", card.level, card.suit)
                     self.cards.append(card)
                     deck.cards.remove(card)
-                    return
+                    return True
+            return False
                 
 # Function that lets user place bet
 def place_bet():
@@ -292,9 +303,9 @@ def main():
 
         # Check for cheating condition based on win rate or negative profit
         should_cheat = (win_rate < 0.5 or computer_profit < -250)
-        if should_cheat:  # 50% chance to cheat when conditions are met
+        if should_cheat and random.random() < 0.66:  # 50% chance to cheat when conditions are met
             print("Computer might be thinking of cheating...\n")
-            computer_hand.cheat(deck)  # AI cheats by modifying its hand
+            should_cheat = computer_hand.cheat(deck)  # AI cheats by modifying its hand
 
         ai_bet = ai_move(computer_profit, user_bet, should_cheat, prob_win)
 

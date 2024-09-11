@@ -177,9 +177,9 @@ def determine_winner(user_hand, computer_hand):
         if user_value > computer_value:
             return "lose", user_score
         elif user_value < computer_value:
-            return "win", user_score
+            return "win", computer_score
         else:
-            return "draw" ,user_score
+            return "draw" , user_score
 
 # Function that determines the AI move
 def ai_move(pot, should_cheat, prob_win):
@@ -297,7 +297,6 @@ def main():
         # 66% chance to cheat when conditions are met and the first two cards are not really bad
         ai_cheated = False
         if should_cheat and random.random() < 0.66 and prob_win > 0.15: 
-            print("AI is about to cheat")
             ai_cheated = computer_hand.cheat(deck)  # AI cheats by modifying its hand
 
         # AI makes a move depending on should_cheat and strenght of first 2 cards

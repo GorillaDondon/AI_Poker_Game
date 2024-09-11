@@ -194,7 +194,7 @@ def determine_winner(user_hand, computer_hand):
 def ai_move(pot, should_cheat, prob_win):
 
     # If we know computer is going to cheat to win
-    if should_cheat:
+    if should_cheat: # should_cheat = (win_rate < 0.5 or computer_profit < -250)
             move = random.choices(["call", "raise"], weights=[0.3,0.7])[0]
             if move == "raise":
                 multiplier = random.choice([1.5, 2.0])
@@ -203,7 +203,7 @@ def ai_move(pot, should_cheat, prob_win):
                 return pot 
         
     else:
-        if prob_win > 0.65:
+        if prob_win > 0.65: # prob_win = calc_probability(user_hand, computer_hand, deck)
             move = random.choices(["call", "raise"], weights=[0.4,0.6])[0]
             if move == "raise":
                 return int(pot*1.5) # Computer makes a raise 

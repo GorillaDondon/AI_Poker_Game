@@ -1,5 +1,8 @@
 import random
 from copy import deepcopy
+"""
+Game roules are the ones stated in the HW description, but also that the maximum bet the user can make is $200
+"""
 
 # Class for creating each card
 class Card:
@@ -21,9 +24,9 @@ class Deck:
 
     def deal_card(self):
         return self.cards.pop()
-
+        
+    # Shuffle the deck
     def shuffle(self):
-        # Shuffle the deck
         random.shuffle(self.cards)
 
 # Class for initializing the players hand and evaluating it
@@ -37,8 +40,14 @@ class Hand:
                   '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14}
         return values[level]
     
+    # Checks if there is a pair and makes sure the correct pair value is returned
     def is_pair(self, levels):
-        return levels[0] == levels[1] or levels[1] == levels[2] or levels[0] == levels[2]
+        if levels[0] == levels[1] or levels[1] == levels[2]:
+            return True, levels[1]
+        elif levels[0] == levels[2]:
+            return True, levels[2]
+        else:
+            return False, None
         
     def is_flush(self, suites):
         return suites[0] == suites[1] == suites[2]
@@ -74,8 +83,9 @@ class Hand:
             return ("flush", self.level_values(levels[-1]))
 
         # Check for pair
-        if self.is_pair(levels):
-            return ("pair", self.level_values(levels[0]))
+        is_pair, pair_value = self.is_pair(levels)
+        if is_pair:
+            return ("pair", self.level_values(pair_value))
 
         # If none of the above, return high card
         return ("high-card", self.level_values(levels[-1]))
@@ -107,8 +117,7 @@ class Hand:
                     deck.cards.remove(card)
                     return True
             return False
-
-                    
+      
         # Cheat for straight
         if (self.level_values(self.cards[0].level) + 1) == self.level_values(self.cards[1].level):
             # Check for a card that would complete a straight
@@ -177,9 +186,9 @@ def determine_winner(user_hand, computer_hand):
         if user_value > computer_value:
             return "lose", user_score
         elif user_value < computer_value:
-            return "win", user_score
+            return "win", computer_score
         else:
-            return "draw" ,user_score
+            return "draw" , user_score
 
 # Function that determines the AI move
 def ai_move(pot, should_cheat, prob_win):
@@ -188,7 +197,8 @@ def ai_move(pot, should_cheat, prob_win):
     if should_cheat:
             move = random.choices(["call", "raise"], weights=[0.3,0.7])[0]
             if move == "raise":
-                return int(pot*1.5) # Computer makes a raise 
+                multiplier = random.choice([1.5, 2.0])
+                return int(pot*multiplier) # Computer makes a raise 
             else:
                 return pot 
         
@@ -297,7 +307,6 @@ def main():
         # 66% chance to cheat when conditions are met and the first two cards are not really bad
         ai_cheated = False
         if should_cheat and random.random() < 0.66 and prob_win > 0.15: 
-            print("AI is about to cheat")
             ai_cheated = computer_hand.cheat(deck)  # AI cheats by modifying its hand
 
         # AI makes a move depending on should_cheat and strenght of first 2 cards

@@ -98,12 +98,11 @@ class Hand:
         suits = [card.suit for card in self.cards]
 
         # Cheat for flush
-        print("Cheating: ", suits[0], suits[1])
         if suits[0] == suits[1]:
             for card in deck.cards:
                 print(card.suit, suits[0])
                 if card.suit == suits[0]:
-                    self.cards.append(card)
+                    self.cards.append(card) # Appends card to the AI's hand
                     deck.cards.remove(card)
                     return True
             return False
@@ -134,7 +133,7 @@ class Hand:
 
         # Cheat for pair
         if levels[0] != levels[1] and suits[0] != suits[1]:
-            random_card = random.choice([levels[0], levels[1]]) # Get highest card
+            random_card = random.choice([levels[0], levels[1]]) # Get random card
             for card in deck.cards:
                 card_value = self.level_values(card.level)  # Convert card level to integer for comparison
                 if card_value == random_card:
@@ -197,20 +196,23 @@ def ai_move(pot, should_cheat, prob_win):
     if should_cheat:
             move = random.choices(["call", "raise"], weights=[0.3,0.7])[0]
             if move == "raise":
-                multiplier = random.choice([1.5, 2.0])
+                multiplier = random.choice([1.5, 2.0]) # sometimes the AI raise by 1.5 or double the pot
                 return int(pot*multiplier) # Computer makes a raise 
             else:
-                return pot 
+                return pot # AI call
         
     else:
+        # If having strong starting cards raise more often
         if prob_win > 0.65:
             move = random.choices(["call", "raise"], weights=[0.4,0.6])[0]
             if move == "raise":
                 return int(pot*1.5) # Computer makes a raise 
             else:
                 return pot
+            # If having worse cards fold
         elif prob_win < 0.3:
-            return 0
+            return 0 # AI fold
+            # If it is equalt make a random decision, but more often call
         else:
             move = random.choices(["call", "raise", "fold"], weights=[0.5, 0.2, 0.3])[0]
             if move == "raise":
@@ -227,13 +229,13 @@ def calc_probability(user_hands, computer_hands, deck, simulations=5000):
     lose = 0
     draw = 0
 
-    # extract visible two cards
+    # Extract visible two cards
     computer_visible = computer_hands.cards
     user_visible = user_hands.cards
 
-    # simulate calculating the win, lose, draw probabilities with 5000 random simulations
+    # Simulate calculating the win, lose, draw probabilities with 5000 random simulations
     for _ in range(simulations):
-        # reset the deck (without visible 4 cards) in every simulation
+        # Reset the deck (without visible 4 cards) in every simulation
         temp = deepcopy(deck)
         temp.shuffle()
 

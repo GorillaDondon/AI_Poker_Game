@@ -100,7 +100,6 @@ class Hand:
         # Cheat for flush
         if suits[0] == suits[1]:
             for card in deck.cards:
-                print(card.suit, suits[0])
                 if card.suit == suits[0]:
                     self.cards.append(card) # Appends card to the AI's hand
                     deck.cards.remove(card)

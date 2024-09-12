@@ -142,6 +142,8 @@ class Hand:
                     deck.cards.remove(card)
                     return True
             return False
+        
+       
                 
 # Function that lets user place bet
 def place_bet():
